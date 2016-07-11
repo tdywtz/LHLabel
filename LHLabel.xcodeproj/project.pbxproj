@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4D17DB481D2A05BD002E2B94 /* NSMutableAttributedString+LH.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D17DA7F1D2A05BD002E2B94 /* NSMutableAttributedString+LH.m */; };
+		4D17DB491D2A05BD002E2B94 /* LHLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D17DA811D2A05BD002E2B94 /* LHLabel.m */; };
+		4DBD79231D2C8F4500E752DB /* keyboard1.gif in Resources */ = {isa = PBXBuildFile; fileRef = 4DBD79221D2C8F4500E752DB /* keyboard1.gif */; };
+		4DD208FC1D2DDE5B0091CEC7 /* LHLabelTextStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD208FB1D2DDE5B0091CEC7 /* LHLabelTextStorage.m */; };
 		4DDDBCC31D24DC3F00FC6081 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DDDBCC21D24DC3F00FC6081 /* main.m */; };
 		4DDDBCC61D24DC3F00FC6081 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DDDBCC51D24DC3F00FC6081 /* AppDelegate.m */; };
 		4DDDBCC91D24DC3F00FC6081 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DDDBCC81D24DC3F00FC6081 /* ViewController.m */; };
@@ -35,6 +39,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4D17DA7C1D2A05BD002E2B94 /* LHLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LHLabel.h; sourceTree = "<group>"; };
+		4D17DA7F1D2A05BD002E2B94 /* NSMutableAttributedString+LH.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableAttributedString+LH.m"; sourceTree = "<group>"; };
+		4D17DA801D2A05BD002E2B94 /* NSMutableAttributedString+LH.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableAttributedString+LH.h"; sourceTree = "<group>"; };
+		4D17DA811D2A05BD002E2B94 /* LHLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LHLabel.m; sourceTree = "<group>"; };
+		4DBD79221D2C8F4500E752DB /* keyboard1.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = keyboard1.gif; sourceTree = "<group>"; };
+		4DD208FA1D2DDE5B0091CEC7 /* LHLabelTextStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LHLabelTextStorage.h; sourceTree = "<group>"; };
+		4DD208FB1D2DDE5B0091CEC7 /* LHLabelTextStorage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LHLabelTextStorage.m; sourceTree = "<group>"; };
 		4DDDBCBE1D24DC3F00FC6081 /* LHLabel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LHLabel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DDDBCC21D24DC3F00FC6081 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		4DDDBCC41D24DC3F00FC6081 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -101,6 +112,7 @@
 		4DDDBCC01D24DC3F00FC6081 /* LHLabel */ = {
 			isa = PBXGroup;
 			children = (
+				4DDDBCFE1D2502A200FC6081 /* LHLabel */,
 				4DDDBCC41D24DC3F00FC6081 /* AppDelegate.h */,
 				4DDDBCC51D24DC3F00FC6081 /* AppDelegate.m */,
 				4DDDBCC71D24DC3F00FC6081 /* ViewController.h */,
@@ -138,6 +150,20 @@
 				4DDDBCE81D24DC3F00FC6081 /* Info.plist */,
 			);
 			path = LHLabelUITests;
+			sourceTree = "<group>";
+		};
+		4DDDBCFE1D2502A200FC6081 /* LHLabel */ = {
+			isa = PBXGroup;
+			children = (
+				4D17DA7C1D2A05BD002E2B94 /* LHLabel.h */,
+				4D17DA811D2A05BD002E2B94 /* LHLabel.m */,
+				4DD208FA1D2DDE5B0091CEC7 /* LHLabelTextStorage.h */,
+				4DD208FB1D2DDE5B0091CEC7 /* LHLabelTextStorage.m */,
+				4D17DA801D2A05BD002E2B94 /* NSMutableAttributedString+LH.h */,
+				4D17DA7F1D2A05BD002E2B94 /* NSMutableAttributedString+LH.m */,
+				4DBD79221D2C8F4500E752DB /* keyboard1.gif */,
+			);
+			path = LHLabel;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -246,6 +272,7 @@
 				4DDDBCD11D24DC3F00FC6081 /* LaunchScreen.storyboard in Resources */,
 				4DDDBCCE1D24DC3F00FC6081 /* Assets.xcassets in Resources */,
 				4DDDBCCC1D24DC3F00FC6081 /* Main.storyboard in Resources */,
+				4DBD79231D2C8F4500E752DB /* keyboard1.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,8 +297,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D17DB491D2A05BD002E2B94 /* LHLabel.m in Sources */,
 				4DDDBCC91D24DC3F00FC6081 /* ViewController.m in Sources */,
 				4DDDBCC61D24DC3F00FC6081 /* AppDelegate.m in Sources */,
+				4DD208FC1D2DDE5B0091CEC7 /* LHLabelTextStorage.m in Sources */,
+				4D17DB481D2A05BD002E2B94 /* NSMutableAttributedString+LH.m in Sources */,
 				4DDDBCC31D24DC3F00FC6081 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -412,6 +442,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = LHLabel/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.12365auto.LHLabel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -423,6 +454,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = LHLabel/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.12365auto.LHLabel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -496,6 +528,7 @@
 				4DDDBCED1D24DC3F00FC6081 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4DDDBCEE1D24DC3F00FC6081 /* Build configuration list for PBXNativeTarget "LHLabelTests" */ = {
 			isa = XCConfigurationList;
@@ -504,6 +537,7 @@
 				4DDDBCF01D24DC3F00FC6081 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4DDDBCF11D24DC3F00FC6081 /* Build configuration list for PBXNativeTarget "LHLabelUITests" */ = {
 			isa = XCConfigurationList;
@@ -512,6 +546,7 @@
 				4DDDBCF31D24DC3F00FC6081 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
