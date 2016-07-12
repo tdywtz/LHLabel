@@ -108,11 +108,8 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     _lineSpacing            = 0.0;
     _paragraphSpacing       = 0.0;
     _textStorages           = [[NSMutableArray alloc] init];
-    if (self.backgroundColor == nil)
-    {
-        self.backgroundColor = [UIColor orangeColor];
-    }
-    
+
+    self.backgroundColor = [UIColor clearColor];
     self.userInteractionEnabled = YES;
     [self resetFont];
 }
@@ -328,7 +325,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 if (viewWidth > 0 && runWidth > viewWidth) {
                     runWidth  = viewWidth;
                 }
-                CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), self.textInsets.top+lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
+                CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
                  CGRect rect = CGRectApplyAffineTransform(runRect, transform);
                 // point 是否在rect里
                 if(CGRectContainsPoint(rect, point)){
@@ -338,24 +335,23 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 
             }
 
-
             LHLabelTextStorage *linkStorage = (LHLabelTextStorage *)attributes[kLHTextRunAttributedName];
 
             if (linkStorage) {
-                CFRange range = CFRangeMake(0, 0);
-                CGFloat runWidth  = CTRunGetTypographicBounds(run, range, &runAscent, &runDescent, NULL);
+                CFRange range = CTRunGetStringRange(run);
+                CGFloat runWidth  = CTRunGetTypographicBounds(run, CFRangeMake(0, 0), &runAscent, &runDescent, NULL);
 
                 if (viewWidth > 0 && runWidth > viewWidth) {
                     runWidth  = viewWidth;
                 }
-                CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), self.textInsets.top+lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
+                CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL),lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
                 CGRect rect = CGRectApplyAffineTransform(runRect, transform);
-                   NSLog(@"%f=%f=%f=%f",runRect.origin.x,runRect.origin.y,runRect.size.width,runRect.size.height);
+
                 // point 是否在rect里
                 if(CGRectContainsPoint(rect, point)){
                     linkStorage.drawRect = runRect;
-                    NSLog(@"%ld",range.location);
-                    linkStorage.range = NSMakeRange(range.location, range.length);
+
+                    linkStorage.range = NSMakeRange(range.location, 20);
                     return linkStorage;
                 }
 
@@ -363,6 +359,53 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
         }
     }
     return nil;
+}
+
+- (NSRange)drawRange{
+    if (_frameRef == nil) {
+        return NSMakeRange(0, 0);
+    }
+    // 获取每行
+    CFArrayRef lines = CTFrameGetLines(_frameRef);
+    CGPoint lineOrigins[CFArrayGetCount(lines)];
+    CTFrameGetLineOrigins(_frameRef, CFRangeMake(0, 0), lineOrigins);
+
+    NSRange mageRange = NSMakeRange(0, 0);
+    NSInteger numberOfLines = _numberOfLines > 0 ? MIN(_numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
+
+    // 获取每行有多少run
+    for (int i = 0; i < numberOfLines; i++) {
+        CTLineRef line = CFArrayGetValueAtIndex(lines, i);
+        CGFloat lineAscent;
+        CGFloat lineDescent;
+        CGFloat lineLeading;
+        CTLineGetTypographicBounds(line, &lineAscent, &lineDescent, &lineLeading);
+
+        CFArrayRef runs = CTLineGetGlyphRuns(line);
+        // 获得每行的run
+        for (int j = 0; j < CFArrayGetCount(runs); j++) {
+
+            CTRunRef run = CFArrayGetValueAtIndex(runs, j);
+            // run的属性字典
+            NSDictionary* attributes = (NSDictionary*)CTRunGetAttributes(run);
+
+            LHLabelTextStorage *linkStorage = (LHLabelTextStorage *)attributes[kLHTextRunAttributedName];
+
+            if (linkStorage) {
+
+                if ([linkStorage isEqual:self.touchedStorage]) {
+                    CFRange range  = CTRunGetStringRange(run);
+                    if (mageRange.length == 0) {
+                        mageRange = NSMakeRange(range.location, range.length);
+                    }else{
+                        mageRange.length += range.length;
+                    }
+                }
+
+            }
+        }
+    }
+    return mageRange;
 }
 
 #pragma mark - views
@@ -396,7 +439,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     CGContextScaleCTM(context, 1.0, -1.0);
 
 
-    [self drawSelectionAreaFrame:_frameRef InRange:self.touchedStorage.range bgColor:self.highlightColor];
+    [self drawSelectionAreaFrame:_frameRef InRange:[self drawRange] bgColor:self.highlightColor];
     [self drawShadow:context];  // 画阴影
     [self drawText:_attributedText frame:_frameRef rect:insetRect context:context]; // CTFrameDraw 将 frame 描述到设备上下文
     [self drawTextStorage];  // 画其他元素
@@ -404,84 +447,110 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 }
 // 绘画选择区域
 - (void)drawSelectionAreaFrame:(CTFrameRef)frameRef InRange:(NSRange)selectRange bgColor:(UIColor *)bgColor{
-    CFArrayRef lines = CTFrameGetLines(_frameRef);
-    CGPoint lineOrigins[CFArrayGetCount(lines)];
-    CTFrameGetLineOrigins(_frameRef, CFRangeMake(0, 0), lineOrigins);
-    CGFloat viewWidth = self.bounds.size.width;
+    NSInteger selectionStartPosition = selectRange.location;
+    NSInteger selectionEndPosition = NSMaxRange(selectRange);
+    if (!_touchedStorage) {
+        return;
+    }
+    if (selectionStartPosition < 0 || selectRange.length <= 0 || selectionEndPosition > self.attributedText.length) {
+        return;
+    }
 
-    NSInteger numberOfLines = _numberOfLines > 0 ? MIN(_numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
-    CGAffineTransform transform =  CGAffineTransformScale(CGAffineTransformMakeTranslation(0,self.bounds.size.height), 1.f, -1.f);
+    CFArrayRef lines = CTFrameGetLines(frameRef);
+    if (!lines) {
+        return;
+    }
+    CFIndex count = CFArrayGetCount(lines);
+    // 获得每一行的origin坐标
+    CGPoint origins[count];
+    CTFrameGetLineOrigins(frameRef, CFRangeMake(0,0), origins);
+    for (int i = 0; i < count; i++) {
+        CGPoint linePoint = origins[i];
+       // linePoint.x += self.textInsets.left;
+        linePoint.y -= self.textInsets.top;
 
-    // 获取每行有多少run
-    for (int i = 0; i < numberOfLines; i++) {
         CTLineRef line = CFArrayGetValueAtIndex(lines, i);
-        CGFloat lineAscent;
-        CGFloat lineDescent;
-        CGFloat lineLeading;
-        CTLineGetTypographicBounds(line, &lineAscent, &lineDescent, &lineLeading);
+        CFRange range = CTLineGetStringRange(line);
+        // 1. start和end在一个line,则直接弄完break
+        if ([self isPosition:selectionStartPosition inRange:range] && [self isPosition:selectionEndPosition inRange:range]) {
+            CGFloat ascent, descent, leading, offset, offset2;
+            offset = CTLineGetOffsetForStringIndex(line, selectionStartPosition, NULL);
+            offset2 = CTLineGetOffsetForStringIndex(line, selectionEndPosition, NULL);
+            CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+            CGRect lineRect = CGRectMake(linePoint.x + offset, linePoint.y - descent, offset2 - offset, ascent + descent);
+            [self fillSelectionAreaInRect:lineRect bgColor:bgColor];
+            break;
+        }
 
-        CFArrayRef runs = CTLineGetGlyphRuns(line);
-        // 获得每行的run
-        for (int j = 0; j < CFArrayGetCount(runs); j++) {
-            CGFloat runAscent;
-            CGFloat runDescent;
-            CGPoint lineOrigin = lineOrigins[i];
-            CTRunRef run = CFArrayGetValueAtIndex(runs, j);
-            // run的属性字典
-            NSDictionary* attributes = (NSDictionary*)CTRunGetAttributes(run);
-            LHLabelTextStorage *linkStorage = (LHLabelTextStorage *)attributes[kLHTextRunAttributedName];
-            NSLog(@"====%@",linkStorage.returnData);
-            if (linkStorage) {
-                CFRange range = CFRangeMake(0, 0);
-                CGFloat runWidth  = CTRunGetTypographicBounds(run, range, &runAscent, &runDescent, NULL);
-
-                if (viewWidth > 0 && runWidth > viewWidth) {
-                    runWidth  = viewWidth;
-                }
-                CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), self.textInsets.top+lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
-                [self drawHighlightWithRect:runRect];
-
-                
-            }
+        // 2. start和end不在一个line
+        // 2.1 如果start在line中，则填充Start后面部分区域
+        if ([self isPosition:selectionStartPosition inRange:range]) {
+            CGFloat ascent, descent, leading, width, offset;
+            offset = CTLineGetOffsetForStringIndex(line, selectionStartPosition, NULL);
+            width = CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+            CGRect lineRect = CGRectMake(linePoint.x + offset, linePoint.y - descent, width - offset, ascent + descent);
+            [self fillSelectionAreaInRect:lineRect bgColor:bgColor];
+        } // 2.2 如果 start在line前，end在line后，则填充整个区域
+        else if (selectionStartPosition < range.location && selectionEndPosition >= range.location + range.length) {
+            CGFloat ascent, descent, leading, width;
+            width = CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+            CGRect lineRect = CGRectMake(linePoint.x, linePoint.y - descent, width, ascent + descent);
+            [self fillSelectionAreaInRect:lineRect bgColor:bgColor];
+        } // 2.3 如果start在line前，end在line中，则填充end前面的区域,break
+        else if (selectionStartPosition < range.location && [self isPosition:selectionEndPosition inRange:range]) {
+            CGFloat ascent, descent, leading, width, offset;
+            offset = CTLineGetOffsetForStringIndex(line, selectionEndPosition, NULL);
+            width = CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+            CGRect lineRect = CGRectMake(linePoint.x, linePoint.y - descent, offset, ascent + descent);
+            [self fillSelectionAreaInRect:lineRect bgColor:bgColor];
         }
     }
+}
 
+- (BOOL)isPosition:(NSInteger)position inRange:(CFRange)range {
+    return (position >= range.location && position < range.location + range.length);
+}
+
+- (void)fillSelectionAreaInRect:(CGRect)rect bgColor:(UIColor *)bgColor {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, bgColor.CGColor);
+    CGContextFillRect(context, rect);
 }
 
 
 
-- (void)drawHighlightWithRect:(CGRect)rect
-{
-    if (self.touchedStorage && self.highlightColor)
-    {
-        if (CGRectEqualToRect(self.touchedStorage.drawRect, CGRectZero)) {
-            return;
-        }
-        [self.highlightColor setFill];
-        CGRect highlightRect = self.touchedStorage.drawRect;
-                CGContextRef ctx = UIGraphicsGetCurrentContext();
-                CGFloat pi = (CGFloat)M_PI;
-
-                CGFloat radius = 1.0f;
-                CGContextMoveToPoint(ctx, highlightRect.origin.x, highlightRect.origin.y + radius);
-                CGContextAddLineToPoint(ctx, highlightRect.origin.x, highlightRect.origin.y + highlightRect.size.height - radius);
-                CGContextAddArc(ctx, highlightRect.origin.x + radius, highlightRect.origin.y + highlightRect.size.height - radius,
-                                radius, pi, pi / 2.0f, 1.0f);
-                CGContextAddLineToPoint(ctx, highlightRect.origin.x + highlightRect.size.width - radius,
-                                        highlightRect.origin.y + highlightRect.size.height);
-                CGContextAddArc(ctx, highlightRect.origin.x + highlightRect.size.width - radius,
-                                highlightRect.origin.y + highlightRect.size.height - radius, radius, pi / 2, 0.0f, 1.0f);
-                CGContextAddLineToPoint(ctx, highlightRect.origin.x + highlightRect.size.width, highlightRect.origin.y + radius);
-                CGContextAddArc(ctx, highlightRect.origin.x + highlightRect.size.width - radius, highlightRect.origin.y + radius,
-                                radius, 0.0f, -pi / 2.0f, 1.0f);
-                CGContextAddLineToPoint(ctx, highlightRect.origin.x + radius, highlightRect.origin.y);
-                CGContextAddArc(ctx, highlightRect.origin.x + radius, highlightRect.origin.y + radius, radius,
-                                -pi / 2, pi, 1);
-                CGContextFillPath(ctx);
-
-    }
-
-}
+//- (void)drawHighlightWithRect:(CGRect)rect
+//{
+//    if (self.touchedStorage && self.highlightColor)
+//    {
+//        if (CGRectEqualToRect(self.touchedStorage.drawRect, CGRectZero)) {
+//            return;
+//        }
+//        [self.highlightColor setFill];
+//        CGRect highlightRect = self.touchedStorage.drawRect;
+//                CGContextRef ctx = UIGraphicsGetCurrentContext();
+//                CGFloat pi = (CGFloat)M_PI;
+//
+//                CGFloat radius = 1.0f;
+//                CGContextMoveToPoint(ctx, highlightRect.origin.x, highlightRect.origin.y + radius);
+//                CGContextAddLineToPoint(ctx, highlightRect.origin.x, highlightRect.origin.y + highlightRect.size.height - radius);
+//                CGContextAddArc(ctx, highlightRect.origin.x + radius, highlightRect.origin.y + highlightRect.size.height - radius,
+//                                radius, pi, pi / 2.0f, 1.0f);
+//                CGContextAddLineToPoint(ctx, highlightRect.origin.x + highlightRect.size.width - radius,
+//                                        highlightRect.origin.y + highlightRect.size.height);
+//                CGContextAddArc(ctx, highlightRect.origin.x + highlightRect.size.width - radius,
+//                                highlightRect.origin.y + highlightRect.size.height - radius, radius, pi / 2, 0.0f, 1.0f);
+//                CGContextAddLineToPoint(ctx, highlightRect.origin.x + highlightRect.size.width, highlightRect.origin.y + radius);
+//                CGContextAddArc(ctx, highlightRect.origin.x + highlightRect.size.width - radius, highlightRect.origin.y + radius,
+//                                radius, 0.0f, -pi / 2.0f, 1.0f);
+//                CGContextAddLineToPoint(ctx, highlightRect.origin.x + radius, highlightRect.origin.y);
+//                CGContextAddArc(ctx, highlightRect.origin.x + radius, highlightRect.origin.y + radius, radius,
+//                                -pi / 2, pi, 1);
+//                CGContextFillPath(ctx);
+//
+//    }
+//
+//}
 
 
 // 画阴影
