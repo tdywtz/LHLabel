@@ -31,7 +31,7 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
 
      LHLabelTextStorage *textStorag = (__bridge LHLabelTextStorage *)refCon;
 
-     return textStorag.drawSize.width;
+     return [textStorag getWidth];
 }
 
 
@@ -43,6 +43,16 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
         [((UIView *)_draw) removeFromSuperview];
     }
 }
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _insets = UIEdgeInsetsZero;
+    }
+    return self;
+}
+
 - (instancetype)initWithData:(id)data{
     if (self = [super init]) {
         self.returnData = data;
@@ -67,6 +77,7 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
     }else{
        ascent = 0;
     }
+    ascent += self.insets.top;
     return ascent;
 }
 
@@ -79,7 +90,12 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
     }else{
         ascent = self.drawSize.height;
     }
+    ascent += self.insets.bottom;
     return ascent;
+}
+
+- (CGFloat)getWidth{
+    return self.drawSize.width+self.insets.left+self.insets.right;
 }
 
 @end

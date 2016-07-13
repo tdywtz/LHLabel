@@ -219,16 +219,15 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     _frameRef = [self createFrameRefWithFramesetter:framesetter textSize:size attribute:att];
 
     CFRelease(framesetter);
-    [self saveTextStorageRectWithFrame:_frameRef];
+    [self saveTextStorageRectWithFrame:_frameRef width:size.width+self.textInsets.left+self.textInsets.right];
 }
 
-- (void)saveTextStorageRectWithFrame:(CTFrameRef)frame
+- (void)saveTextStorageRectWithFrame:(CTFrameRef)frame width:(CGFloat)viewWidth
 {
     // 获取每行
     CFArrayRef lines = CTFrameGetLines(frame);
     CGPoint lineOrigins[CFArrayGetCount(lines)];
     CTFrameGetLineOrigins(frame, CFRangeMake(0, 0), lineOrigins);
-    CGFloat viewWidth = self.bounds.size.width;
 
     NSInteger numberOfLines = _numberOfLines > 0 ? MIN(_numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
 
@@ -321,15 +320,16 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
             if (delegate) {
 
                 CGFloat runWidth  = CTRunGetTypographicBounds(run, CFRangeMake(0,0), &runAscent, &runDescent, NULL);
-
+               LHLabelTextStorage * TextStorage = (LHLabelTextStorage *)CTRunDelegateGetRefCon(delegate);
                 if (viewWidth > 0 && runWidth > viewWidth) {
                     runWidth  = viewWidth;
                 }
                 CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
                  CGRect rect = CGRectApplyAffineTransform(runRect, transform);
+                rect = UIEdgeInsetsInsetRect(rect, TextStorage.insets);
                 // point 是否在rect里
                 if(CGRectContainsPoint(rect, point)){
-                    LHLabelTextStorage * TextStorage = (LHLabelTextStorage *)CTRunDelegateGetRefCon(delegate);
+
                     return TextStorage;
                 }
 
@@ -644,7 +644,9 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 
         if ([obj.draw isKindOfClass:[UIImage class]]) {
             CGRect frame = [key CGRectValue];
-            
+            UIEdgeInsets insets = UIEdgeInsetsMake(obj.insets.bottom, obj.insets.left, obj.insets.top, obj.insets.right);
+            frame = UIEdgeInsetsInsetRect(frame, insets);
+
             CGContextRef context = UIGraphicsGetCurrentContext();
             CGContextDrawImage(context, frame, ((UIImage *)obj.draw).CGImage);
         }else{
@@ -725,7 +727,15 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
     NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
     [self.attributedString replaceCharactersInRange:range withAttributedString:att];
+    [_textStorages addObject:storage];
+    self.attributedText = self.attributedString;
+}
 
+- (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size insets:(UIEdgeInsets)insets range:(NSRange)range{
+    LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
+    NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
+    [self.attributedString replaceCharactersInRange:range withAttributedString:att];
+    storage.insets = insets;
     [_textStorages addObject:storage];
     self.attributedText = self.attributedString;
 }

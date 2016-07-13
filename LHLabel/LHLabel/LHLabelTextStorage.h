@@ -31,10 +31,12 @@ CGFloat LHTextRunDelegateGetWidthCallback(void *refCon);
 @property (nonatomic,assign) CGSize drawSize;
 @property (nonatomic,assign) CGRect drawRect;
 @property (nonatomic,assign) ImageAlignment imageAlignment;
+@property (nonatomic,assign) UIEdgeInsets insets;
 @property (nonatomic,assign) NSRange range;
 
 - (CGFloat)getAscent;
 - (CGFloat)getDescent;
+- (CGFloat)getWidth;
 
 - (instancetype)initWithData:(id)data;
 + (instancetype)initWithData:(id)data draw:(id)draw size:(CGSize)size;
