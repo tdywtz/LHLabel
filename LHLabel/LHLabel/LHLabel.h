@@ -43,12 +43,25 @@
 @property(nonatomic,assign)     CGFloat         firstLineHeadIndent; //段落首行距离左边长度
 
 //添加链接
-- (void)addUrl:(NSURL *)url range:(NSRange)range;
+- (void)addUrl:(NSURL *)url
+         range:(NSRange)range;
+
 //添加图片
-- (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size range:(NSRange)range;
-- (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size insets:(UIEdgeInsets)insets range:(NSRange)range;
+- (void)addImage:(UIImage *)image
+            data:(id)data
+            size:(CGSize)size
+           range:(NSRange)range;
+
+- (void)addImage:(UIImage *)image
+            data:(id)data
+            size:(CGSize)size
+          insets:(UIEdgeInsets)insets
+           range:(NSRange)range;
+
 //添加view
-- (void)addView:(UIView *)view size:(CGSize)size range:(NSRange)range;
+- (void)addView:(UIView *)view
+           size:(CGSize)size
+          range:(NSRange)range;
 
 
 @end

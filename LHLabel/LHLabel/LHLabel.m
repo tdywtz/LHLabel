@@ -435,7 +435,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     }
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetTextMatrix(context, CGAffineTransformIdentity);
-    CGContextTranslateCTM(context, self.textInsets.left,insetRect.size.height+self.textInsets.bottom);
+    CGContextTranslateCTM(context, self.textInsets.left,insetRect.size.height+self.textInsets.bottom-self.textInsets.top);
     CGContextScaleCTM(context, 1.0, -1.0);
 
 
@@ -702,10 +702,10 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
         }
 
     }
-
     self.touchedStorage = nil;
     [self setNeedsDisplay];
 }
+
 
 - (void)touchesCancelled:(nullable NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event{
 
@@ -713,7 +713,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
    [self setNeedsDisplay];
 }
 
-#pragma mark - add
+#pragma mark - 添加链接
 - (void)addUrl:(NSURL *)url range:(NSRange)range{
     LHLabelTextStorage *storage = [[LHLabelTextStorage alloc] initWithData:url];
 
@@ -723,6 +723,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     self.attributedText = self.attributedString;
 }
 
+#pragma mark - 图片
 - (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size range:(NSRange)range{
     LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
     NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
@@ -740,6 +741,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     self.attributedText = self.attributedString;
 }
 
+#pragma mark - 添加view
 - (void)addView:(UIView *)view size:(CGSize)size range:(NSRange)range{
     [self addSubview:view];
     
@@ -756,6 +758,9 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                                      fontDescent:(CGFloat)fontDescent
 {
 
+    textStorage.fontAscent = fontAscent;
+    textStorage.fontDescent = fontDescent;
+    
     unichar objectReplacementChar           = 0xFFFC;
     NSString *objectReplacementString       = [NSString stringWithCharacters:&objectReplacementChar length:1];
     NSMutableAttributedString *attachText   = [[NSMutableAttributedString alloc]initWithString:objectReplacementString];

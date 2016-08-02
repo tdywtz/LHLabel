@@ -90,7 +90,7 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
     }else{
         ascent = self.drawSize.height;
     }
-    ascent += self.insets.bottom;
+    ascent += (self.insets.bottom + self.fontDescent);
     return ascent;
 }
 

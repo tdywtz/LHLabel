@@ -27,12 +27,16 @@ CGFloat LHTextRunDelegateGetWidthCallback(void *refCon);
 
 @property (nonatomic,strong) id returnData;
 
-@property (nonatomic,strong) id draw;
-@property (nonatomic,assign) CGSize drawSize;
-@property (nonatomic,assign) CGRect drawRect;
-@property (nonatomic,assign) ImageAlignment imageAlignment;
-@property (nonatomic,assign) UIEdgeInsets insets;
-@property (nonatomic,assign) NSRange range;
+@property (nonatomic,strong) id draw;//添加的view、image
+@property (nonatomic,assign) CGSize drawSize;//绘画尺寸
+@property (nonatomic,assign) CGRect drawRect;//绘画区域
+@property (nonatomic,assign) ImageAlignment imageAlignment;//
+@property (nonatomic,assign) UIEdgeInsets insets;//四周空白间距
+@property (nonatomic,assign) NSRange range;//绘画区间
+
+
+@property (nonatomic,assign) CGFloat fontAscent;
+@property (nonatomic,assign) CGFloat fontDescent;
 
 - (CGFloat)getAscent;
 - (CGFloat)getDescent;
