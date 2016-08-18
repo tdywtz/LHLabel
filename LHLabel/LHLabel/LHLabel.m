@@ -259,7 +259,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 if (viewWidth > 0 && runWidth > viewWidth) {
                     runWidth  = viewWidth;
                 }
-                CGRect runRect = CGRectMake(lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL),-self.textInsets.top+lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
+                CGRect runRect = CGRectMake(lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL),lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
 
 
                 [runRectDictionary setObject:attributedImage forKey:[NSValue valueWithCGRect:runRect]];
@@ -278,7 +278,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 {
     // 这里你需要创建一个用于绘制文本的路径区域,通过 self.bounds 使用整个视图矩形区域创建 CGPath 引用。
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPathAddRect(path, NULL, CGRectMake(0, -self.textInsets.top, textSize.width, textSize.height));
+    CGPathAddRect(path, NULL, CGRectMake(0, 0, textSize.width, textSize.height));
 
     CTFrameRef frameRef = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, attribute.length), path, NULL);
     CFRelease(path);
@@ -327,6 +327,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL), lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
                  CGRect rect = CGRectApplyAffineTransform(runRect, transform);
                 rect = UIEdgeInsetsInsetRect(rect, TextStorage.insets);
+                rect.origin.y -= self.textInsets.bottom;
                 // point 是否在rect里
                 if(CGRectContainsPoint(rect, point)){
 
@@ -346,7 +347,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 }
                 CGRect runRect = CGRectMake(self.textInsets.left+lineOrigin.x + CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, NULL),lineOrigin.y - runDescent, runWidth, runAscent + runDescent);
                 CGRect rect = CGRectApplyAffineTransform(runRect, transform);
-
+                rect.origin.y -= self.textInsets.bottom;
                 // point 是否在rect里
                 if(CGRectContainsPoint(rect, point)){
                     linkStorage.drawRect = runRect;
@@ -435,7 +436,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     }
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetTextMatrix(context, CGAffineTransformIdentity);
-    CGContextTranslateCTM(context, self.textInsets.left,insetRect.size.height+self.textInsets.bottom-self.textInsets.top);
+    CGContextTranslateCTM(context, self.textInsets.left,insetRect.size.height+self.textInsets.top);
     CGContextScaleCTM(context, 1.0, -1.0);
 
 
@@ -444,6 +445,14 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     [self drawText:_attributedText frame:_frameRef rect:insetRect context:context]; // CTFrameDraw 将 frame 描述到设备上下文
     [self drawTextStorage];  // 画其他元素
 
+    CGContextSetTextMatrix(context, CGAffineTransformMakeRotation(M_PI));
+    CGContextTranslateCTM(context, -self.textInsets.left,insetRect.size.height+self.textInsets.top);
+    CGContextScaleCTM(context, 1.0, -1.0);
+
+//    CGContextSetStrokeColorWithColor(context, [UIColor redColor].CGColor);
+//    CGContextMoveToPoint(context, 10, 10);
+//    CGContextAddLineToPoint(context, 0, 10);
+//    CGContextStrokePath(context);
 }
 // 绘画选择区域
 - (void)drawSelectionAreaFrame:(CTFrameRef)frameRef InRange:(NSRange)selectRange bgColor:(UIColor *)bgColor{
@@ -467,7 +476,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     for (int i = 0; i < count; i++) {
         CGPoint linePoint = origins[i];
        // linePoint.x += self.textInsets.left;
-        linePoint.y -= self.textInsets.top;
+       // linePoint.y -= self.textInsets.top;
 
         CTLineRef line = CFArrayGetValueAtIndex(lines, i);
         CFRange range = CTLineGetStringRange(line);
