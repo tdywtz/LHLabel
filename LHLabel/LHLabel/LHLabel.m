@@ -426,7 +426,13 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 }
 
 
-
+- (void)sizeToFit{
+    self.preferredMaxLayoutWidth = self.frame.size.width;
+    CGSize size = [self intrinsicContentSize];
+    CGRect frame = self.frame;
+    frame.size = size;
+    self.frame = frame;
+}
 
 - (void)drawRect:(CGRect)rect{
     CGRect insetRect = UIEdgeInsetsInsetRect(rect, self.textInsets);
@@ -660,6 +666,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
             CGContextDrawImage(context, frame, ((UIImage *)obj.draw).CGImage);
         }else{
             CGRect frame = [key CGRectValue];
+            frame = UIEdgeInsetsInsetRect(frame,obj.insets);
             frame.origin.y = self.bounds.size.height-frame.origin.y-frame.size.height-self.textInsets.top;
             frame.origin.x += self.textInsets.left;
             UIView *view = (UIView*)obj.draw;
@@ -733,7 +740,11 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 }
 
 #pragma mark - 图片
-- (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size range:(NSRange)range{
+- (void)addImage:(UIImage *)image
+            data:(id)data
+            size:(CGSize)size
+           range:(NSRange)range{
+
     LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
     NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
     [self.attributedString replaceCharactersInRange:range withAttributedString:att];
@@ -741,13 +752,33 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     self.attributedText = self.attributedString;
 }
 
-- (void)addImage:(UIImage *)image data:(id)data size:(CGSize)size insets:(UIEdgeInsets)insets range:(NSRange)range{
+- (void)addImage:(UIImage *)image
+            data:(id)data
+            size:(CGSize)size
+          insets:(UIEdgeInsets)insets
+           range:(NSRange)range{
+
     LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
     NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
     [self.attributedString replaceCharactersInRange:range withAttributedString:att];
     storage.insets = insets;
     [_textStorages addObject:storage];
     self.attributedText = self.attributedString;
+}
+
+- (void)appendImage:(UIImage *)image
+               data:(id)data
+             insets:(UIEdgeInsets)insets
+               size:(CGSize)size{
+
+    LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:data draw:image size:size];
+    storage.insets = insets;
+    [_textStorages addObject:storage];
+
+     NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
+    [self.attributedString appendAttributedString:att];
+    self.attributedText = self.attributedString;
+
 }
 
 #pragma mark - 添加view
@@ -759,6 +790,21 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     [self.attributedString replaceCharactersInRange:range withAttributedString:att];
 
     [_textStorages addObject:storage];
+    self.attributedText = self.attributedString;
+}
+
+- (void)appendView:(UIView *)view
+            insets:(UIEdgeInsets)insets
+              size:(CGSize)size{
+
+    [self addSubview:view];
+    LHLabelTextStorage *storage = [LHLabelTextStorage initWithData:nil draw:view size:size];
+    storage.insets = insets;
+    [_textStorages addObject:storage];
+
+
+    NSAttributedString *att = [self attributedWithStorage:storage fontAscent:_fontAscent fontDescent:_fontDescent];
+    [self.attributedString appendAttributedString:att];
     self.attributedText = self.attributedString;
 }
 

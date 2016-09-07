@@ -58,10 +58,19 @@
           insets:(UIEdgeInsets)insets
            range:(NSRange)range;
 
+- (void)appendImage:(UIImage *)image
+               data:(id)data
+             insets:(UIEdgeInsets)insets
+               size:(CGSize)size;
+
 //添加view
 - (void)addView:(UIView *)view
            size:(CGSize)size
           range:(NSRange)range;
+
+- (void)appendView:(UIView *)view
+            insets:(UIEdgeInsets)insets
+               size:(CGSize)size;
 
 
 @end

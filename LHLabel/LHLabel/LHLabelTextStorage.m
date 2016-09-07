@@ -49,6 +49,7 @@ CGFloat LHTextRunDelegateGetWidthCallback(void * refCon){
     self = [super init];
     if (self) {
         _insets = UIEdgeInsetsZero;
+        _imageAlignment = ImageAlignmentCenter;
     }
     return self;
 }
