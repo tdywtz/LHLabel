@@ -2,7 +2,7 @@
 //  ViewController.h
 //  LHLabel
 //
-//  Created by bangong on 16/6/30.
+//  Created by bangong on 16/11/2.
 //  Copyright © 2016年 auto. All rights reserved.
 //
 
@@ -10,6 +10,4 @@
 
 @interface ViewController : UIViewController
 
-
 @end
-
